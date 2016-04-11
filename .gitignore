@@ -1,0 +1,7 @@
+#the hidden indexer thing on macs
+.DS_Store
+#the c compiled scripts
+*.pyc
+#a folder that can be used for local library tests.
+local_tests/
+venv/

@@ -1,0 +1,1 @@
+This module defines a class providing bayesian linear regression, but allows the actual model/basis function to be defined modularly and externally to the main class.
