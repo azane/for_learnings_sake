@@ -19,7 +19,7 @@ class BayesLinear(object):
         
         #the covariance matrix of the initial prior
         #   just an isotropic prior times the precision
-        self.covariance = np.identity(self._numParams)*(1/priorStdDev**2)
+        self.covariance = np.identity(self._numParams)*(1./priorStdDev**2)
         
         #the mean of the initial prior
         #   just a zero mean
@@ -32,14 +32,18 @@ class BayesLinear(object):
         self.noisePrecision = 1/(noiseStdDev**2)
         
         
-    def train(x,t):
+    def train(self, x, t):
         """Trains the model by updating the posterior over the parameters, given new data.
         """
         #x.shape == (s,d)
         #   where d is the dimensionality of x
         #t.shape == (s,)
         
-        fullPhi = self._full_phi(x)
+        self._verify_x(x)
+        if t.ndim != 1:
+            raise ValueError("The t array must be of rank 1: Sample size columns by 1.")
+        if x.shape[0] != t.shape[0]:
+            raise ValueError("The x and t sample size do not match.")
         
         #pre-processing
         priorCovarianceInverse = np.linalg.inv(self.covariance)
@@ -49,35 +53,44 @@ class BayesLinear(object):
         self.covariance = np.linalg.inv(priorCovarianceInverse + self.noisePrecision*np.dot(fullPhi.T, fullPhi))
         self.mean = np.dot(self.covariance, np.dot(priorCovarianceInverse, self.mean) + self.noisePrecision*np.dot(fullPhi.T, t))
         
-    def _full_phi(x):
+    def _full_phi(self, x):
         """Maps the input, x, to phi space.
             - where each dimension in phi corresponds to a term in the equation linear in the parameters.
         """
         #x.shape == (s,d)
         
-        #map the input to the phi space, using the constants to differentiate each dimension (term) in phi
-        phiMapped = [self._phiBasis(x[i], **self._phiConstants[i]) for i in range(self._numParams)]
+        #map the inputs to the phi space, using the constants to differentiate each dimension (term) in phi
+        phiMapped = [self._phiBasis(x, **self._phiConstants[i]) for i in range(self._numParams)]
         
         #phiMapped.shape == (s,m)
         #   s is the number of x vectors
         #   m is the dimensionality of phi space
-        return np.array(phiMapped)
+        return np.array(phiMapped).T
         
-    def predictive(x):
+    def _verify_x(self, x):
+        """A simple verification method verifying the rank of the independent data.
+        """
+        #x.shape == (s,d)
+        if x.ndim != 2:
+            raise ValueError("The x array must be of rank 2: Sample size rows by x-dimensionality columns.")
+        
+    def predictive(self, x):
         """Maps the parametric distribution (in phi space) to the data space and returns the mean and variance of a normal for a given x.
             - where the mappings of both are functions of x.
         """
-        #x.shape == (s,d)
-        fullPhi = self._full_phi(x)
+        self._verify_x(x)
         
+        fullPhi = self._full_phi(x)  # .shape == (s,m)
+        
+        #FIXME the fullPhi is an array of vectors over which the covariance matrix should be broadcast, not just dot producted.
+        #       i.e. we need the second term to reduce to a scalar output.
         pVariance = 1/self.noisePrecision + np.dot(fullPhi, self.covariance).dot(fullPhi.T)
         pMean = np.dot(self.mean, fullPhi.T)
         
         return pMean, pVariance
         
-    def sample(x):
+    def sample(self, x):
         """Samples the predictive distribution (in data space) for each point in x.
         """
-        #x.shape == (s,d)
-        
-        return np.random.normal(*self.predictive(x))
+        m, v = self.predictive(x)
+        return np.random.normal(m, np.sqrt(v))

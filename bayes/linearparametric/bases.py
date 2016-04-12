@@ -8,8 +8,12 @@ def gaussianType(x,u,v):
             'variance', the spread of the curve.
         Note that this is not a normal distribution, and is thus not normalized.
     """
+    #x.shape == (s,d)
+    #u.shape == (1,d)
+    #v.shape == (1,)
+    #return shape == (s,)
     
-    return np.exp(-((x-u)**2)/(v**2))
+    return (np.exp(-(np.linalg.norm(x-u, axis=1)**2)/(v**2)))
     
 #</Localized>
 
