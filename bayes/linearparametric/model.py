@@ -33,7 +33,7 @@ class BayesLinear(object):
         
         
     def train(x,t):
-        """ Trains the model by updating the posterior over the parameters, given new data.
+        """Trains the model by updating the posterior over the parameters, given new data.
         """
         #x.shape == (s,d)
         #   where d is the dimensionality of x
@@ -50,13 +50,13 @@ class BayesLinear(object):
         self.mean = np.dot(self.covariance, np.dot(priorCovarianceInverse, self.mean) + self.noisePrecision*np.dot(fullPhi.T, t))
         
     def _full_phi(x):
-        """ Maps the input, x, to phi space.
-                - where each dimension in phi corresponds to a term in the equation linear in the parameters.
+        """Maps the input, x, to phi space.
+            - where each dimension in phi corresponds to a term in the equation linear in the parameters.
         """
         #x.shape == (s,d)
         
         #map the input to the phi space, using the constants to differentiate each dimension (term) in phi
-        phiMapped = [self._phiBasis(x[i], self._phiConstants[i]) for i in range(self._numParams)]
+        phiMapped = [self._phiBasis(x[i], **self._phiConstants[i]) for i in range(self._numParams)]
         
         #phiMapped.shape == (s,m)
         #   s is the number of x vectors
@@ -64,8 +64,8 @@ class BayesLinear(object):
         return np.array(phiMapped)
         
     def predictive(x):
-        """ Maps the parametric distribution (in phi space) to the data space and returns the mean and variance of a normal for a given x.
-                - where the mappings of both are functions of x.
+        """Maps the parametric distribution (in phi space) to the data space and returns the mean and variance of a normal for a given x.
+            - where the mappings of both are functions of x.
         """
         #x.shape == (s,d)
         fullPhi = self._full_phi(x)
@@ -76,7 +76,7 @@ class BayesLinear(object):
         return pMean, pVariance
         
     def sample(x):
-        """ Samples the predictive distribution (in data space) for each point in x.
+        """Samples the predictive distribution (in data space) for each point in x.
         """
         #x.shape == (s,d)
         
