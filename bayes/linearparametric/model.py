@@ -5,7 +5,15 @@ import numpy as np
 #       just save the determinant for a smaller overhead, but still significant time savings?
 #       something about cholesky?
 
+#TODO test the functionality of multivariate input.
+
 class BayesLinear(object):
+    """A class for simple bayesian linear regression of a single output.
+        This uses a gaussian distribution over the parameters.
+        See Bishop's 'Pattern Recognition and Machine Learning' p. 152-159 for information on the
+         derivation of the posterior distribution calculation from bayes rule.
+         Information on the predictive distribution calculation is found there as well.
+    """
     def __init__(self, phiBasis, phiConstants, priorStdDev=10, noiseStdDev=0.2):
         
         #the basis functions for which the parameters are coefficients.
@@ -68,7 +76,7 @@ class BayesLinear(object):
         return np.array(phiMapped).T
         
     def _verify_x(self, x):
-        """A simple verification method verifying the rank of the independent data.
+        """Verifies the rank of the indpendent data array.
         """
         #x.shape == (s,d)
         if x.ndim != 2:
