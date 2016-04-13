@@ -82,9 +82,8 @@ class BayesLinear(object):
         
         fullPhi = self._full_phi(x)  # .shape == (s,m)
         
-        #FIXME the fullPhi is an array of vectors over which the covariance matrix should be broadcast, not just dot producted.
-        #       i.e. we need the second term to reduce to a scalar output.
-        pVariance = 1/self.noisePrecision + np.dot(fullPhi, self.covariance).dot(fullPhi.T)
+        #NOTE: 'ij,ij->i' : multiply elementwise, and then sum over j, keeping i. equivalent to a dot product of vectors, row-wise.
+        pVariance = 1/self.noisePrecision + np.einsum('ij,ij->i', np.dot(fullPhi, self.covariance), fullPhi)
         pMean = np.dot(self.mean, fullPhi.T)
         
         return pMean, pVariance
