@@ -1,1 +1,1 @@
-import singlegauss
+from singlegauss import SingleGauss

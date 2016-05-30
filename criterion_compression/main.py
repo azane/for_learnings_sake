@@ -17,19 +17,32 @@
 import numpy as np
 from ../bayes.clustering.parametric.analytic import SingleGauss
 
+
 class ComplexityAllocationAverage(SingleGauss):
-    """This class provides a set of single gaussians that represent an incrementally updated estimate of a curve.
+    """Provides a set of single gaussians that represent an incrementally updated estimate of a curve.
         The distance/relevance of new info, given input locality is considered for each estimation point in input space.
         The curve gravitates toward its prior at a speed according to variance over time; a lack of relevant data means it will fall toward its prior.
-        
-        This class #TODO inherits from a class providing single gaussian clustering functionality.
-    
     """
     def __init__(self, **kwargs):
         
         super(ComplexityAllocationAverage, self).__init__(**kwargs)
 
+class InputLocals(object):
+    """Provides a set of gaussian basis functions that will morph around the input space to meet the complexity allocation curve.
+        Provides input space sampling method that views the input locals as a mixture of gaussians.
+    """
+    def __init__(self, **kwargs):
+        
+        super(InputLocals, self).__init__(**kwargs)
+
 class CriterionCompression(object):
+    """Compresses data according to criterion, allocating constant complexity accordingly.
+        Stores data to be compressed.
+        Samples from all potential basis functions.
+        Uses linearparametric to calculate weights and likelihood.
+        Feeds to criterion function.
+        Updates ComplexityAllocationAverage
+    """
     def __init__(self, **kwargs):
         
         super(CriterionCompression, self).__init__(**kwargs)
