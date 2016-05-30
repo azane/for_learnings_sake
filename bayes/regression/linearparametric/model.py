@@ -14,7 +14,7 @@ class BayesLinear(object):
          derivation of the posterior distribution calculation from bayes rule.
          Information on the predictive distribution calculation is found there as well.
     """
-    def __init__(self, phiBasis, phiConstants, priorStdDev=10, noiseStdDev=0.2):
+    def __init__(self, phiBasis, phiConstants, priorStdDev=10, noiseStdDev=0.2, priorMean=None, **kwargs):
         
         #the basis functions for which the parameters are coefficients.
         self._phiBasis = phiBasis
@@ -31,7 +31,10 @@ class BayesLinear(object):
         
         #the mean of the initial prior
         #   just a zero mean
-        self.mean = np.zeros(self._numParams)
+        if priorMean is None:
+            self.mean = np.zeros(self._numParams)
+        else:
+            self.mean = np.ones(self._numParams)*float(priorMean)
         
         
         #the noise of the data itself.
@@ -39,6 +42,7 @@ class BayesLinear(object):
         #   precision is the inverse variance, variance is the standard deviation squared.
         self.noisePrecision = 1/(noiseStdDev**2)
         
+        super(BayesLinear, self).__init__(**kwargs)
         
     def train(self, x, t):
         """Trains the model by updating the posterior over the parameters, given new data.
