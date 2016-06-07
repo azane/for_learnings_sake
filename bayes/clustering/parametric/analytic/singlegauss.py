@@ -1,4 +1,7 @@
-"""This file provides a class used for incrementally updating single gaussian 'clustering' problem.
+"""This file provides a class used for incrementally updating a single gaussian inference problem.
+    The functionality 'setting apart' this class, is that includes a method that flattens the parameter distributions, while retaining the
+    predictive distribution. This allows simple moving average calculation without actually hanging on to any old points.
+    This adds a small restriction, in that the Gamma factor of the distribution must be convex.
 """
 
 import numpy as np
@@ -43,9 +46,9 @@ class SingleGauss(object):
         except ValueError:
             raise ValueError("Parameters must be convertible to floats.")
         
-        assert alpha > 0
-        assert beta > 0
-        assert scale > 0
+        assert alpha > 1.
+        assert beta > 0.
+        assert scale > 0.
         
         
         super(SingleGauss, self).__init__(**kwargs)
@@ -53,7 +56,7 @@ class SingleGauss(object):
     def flatten(self, dscale=None):
         """Flattens out distribution
             by reducing scale and alpha arbitrarily, and determining the beta value that will result in the gamma distribution spreading around
-            its mode. This actually keep the predictive distribution identical, but keep the parametric distributions flat so they can
+            its mode. This actually does not change the predictive distribution, but flattens the parametric distributions so they can
             adapt to new information.
             see https://www.desmos.com/calculator/wmghev4n96 for a visualization
         """
@@ -65,10 +68,6 @@ class SingleGauss(object):
         
         #prevent divide by zero, and maintain convexivity
         assert self.alpha > 1.
-        
-        #print "self.alpha: " + str(self.alpha)
-        #print "self.beta: " + str(self.beta)
-        #print "self.scale: " + str(self.scale)
         
         dalpha = dscale/2.
         
