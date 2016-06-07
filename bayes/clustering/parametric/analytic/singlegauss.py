@@ -50,24 +50,42 @@ class SingleGauss(object):
         
         super(SingleGauss, self).__init__(**kwargs)
     
-    def reign_beta(self, dscale):
+    def flatten(self, dscale=None):
         """Flattens out distribution
-            by reducing scale and alpha arbitrarily, and determining the beta value that will result in an unchanged
-            predictive distribution (mean and variance). But since the predictive mean does not depend on anything,
-            we need only hold the predictive variance constant.
-            in this method, we reduce alpha by half of the scale, because this is the rate at which it increases
-            effectively, we are removing dscale points from the distributions memory, widening it, and making it more flexible.
+            by reducing scale and alpha arbitrarily, and determining the beta value that will result in the gamma distribution spreading around
+            its mode. This actually keep the predictive distribution identical, but keep the parametric distributions flat so they can
+            adapt to new information.
+            see https://www.desmos.com/calculator/wmghev4n96 for a visualization
         """
         
-        #FIXME this is currently shrinking the predictive variance, need to check math again.
+        #if it's default, flatten maximally.
+        if dscale == None:
+            dscale = -2.*(1. - self.alpha) - 1
+            
         
-        assert dscale > 0 and dscale < self.scale
+        #prevent divide by zero, and maintain convexivity
+        assert self.alpha > 1.
         
-        dalpha = dscale/2
+        #print "self.alpha: " + str(self.alpha)
+        #print "self.beta: " + str(self.beta)
+        #print "self.scale: " + str(self.scale)
         
-        self.beta = self.beta - (self.beta*(self.scale + 1)*(self.scale - dscale))/(self.scale*(self.scale - dscale + 1))
-        self.alpha = self.alpha - dalpha
-        self.scale = self.scale - dscale
+        dalpha = dscale/2.
+        
+        #set beta so that the distribution stays centered on its current mode, but spreads its tail in the positive direciton.
+        dbeta = self.beta*(1. - (self.alpha - dalpha - 1.)/(self.alpha - 1.))
+        
+        assert self.scale > dscale
+        assert dscale < -2.*(1. - self.alpha)  # restrict the reduction so beta is guaranteed to reduce.
+        assert dscale > 0
+        assert self.beta > dbeta  # make sure beta will not be less than 0
+        assert dbeta > 0  # make sure beta will actually be reduced.
+        assert self.alpha > (dalpha + 1.)  # ensure that alpha will not fall below 1, see above
+        assert dalpha > 0
+        
+        self.beta -= dbeta
+        self.alpha -= dalpha
+        self.scale -= dscale
     
     def fit(self, data):
         """Calculate the posterior parameters given the data, and set the running prior.
