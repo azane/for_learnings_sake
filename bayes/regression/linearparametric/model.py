@@ -3,7 +3,7 @@ import numpy as np
 #TODO find better alternative to inverting the covariance matrix every time.
 #       save the inverse in memory?
 #       just save the determinant for a smaller overhead, but still significant time savings?
-#       something about cholesky?
+#       is a cholesky decomp worth it?
 
 #TODO test the functionality of multivariate input.
 
