@@ -1,2 +1,2 @@
-import bases
-from model import BayesLinear
+from . import bases
+from .model import BayesLinear
